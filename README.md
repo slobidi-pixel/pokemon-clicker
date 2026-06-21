@@ -1,3 +1,6 @@
+0.1
+
+
 # ⚡ Pokémon Clicker Edition ⚡
 
 Ein webbasiertes Incremental / Clicker-Game, bei dem du durch Klicken Level aufsteigst, ein starkes Team aufbaust, Upgrades kaufst und dich bis an die Spitze kämpfst! 
