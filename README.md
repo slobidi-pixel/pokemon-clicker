@@ -26,4 +26,4 @@ Dieses Spiel wurde ausschließlich zu Lern- und Unterhaltungszwecken programmier
 Sollten die Rechteinhaber die Entfernung dieses Projekts wünschen, wird dem umgehend nachgekommen.
 
 ---
-*Created by slobidi-pixel*
+*Created by slobidi*
