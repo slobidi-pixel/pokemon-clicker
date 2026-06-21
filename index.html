@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Clicker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --red: #c8282a;
+            --red-dark: #8b0000;
+            --red-light: #e84040;
+            --yellow: #f8d030;
+            --yellow-dark: #c8a800;
+            --blue: #3058b8;
+            --blue-light: #4878d8;
+            --green: #38c060;
+            --green-dark: #187838;
+            --gray-dark: #181818;
+            --gray-mid: #303030;
+            --gray-light: #484848;
+            --gray-ui: #a8a8a8;
+            --white: #f0f0f0;
+            --pixel: 2px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #101010;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255,255,255,0.03) 31px, rgba(255,255,255,0.03) 32px),
+                repeating-linear-gradient(90deg, transparent, transparent 31px, rgba(255,255,255,0.03) 31px, rgba(255,255,255,0.03) 32px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: var(--white);
+        }
+
+        .main-menu-container {
+            width: 1000px;
+            height: 640px;
+            background: #121218;
+            border: 6px solid #000;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-menu-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png'), 
+                              url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/red.png'),
+                              url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/landscapes/battle/field.png');
+            background-size: 160px 160px, 240px 240px, cover;
+            background-position: calc(50% - 180px) calc(100% - 40px), calc(50% + 150px) calc(100% - 20px), center;
+            background-repeat: no-repeat, no-repeat, no-repeat;
+            filter: brightness(0.15) contrast(1.2);
+            opacity: 0.5;
+            z-index: 0;
+            image-rendering: pixelated;
+        }
+
+        .menu-logo-box {
+            z-index: 2;
+            text-align: center;
+            margin-bottom: 60px;
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        .menu-title-top {
+            font-size: 42px;
+            color: var(--yellow);
+            text-shadow: 5px 5px 0 var(--blue), -5px -5px 0 var(--blue), 5px -5px 0 var(--blue), -5px 5px 0 var(--blue), 0 8px 20px rgba(0,0,0,0.8);
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+        }
+
+        .menu-title-sub {
+            font-size: 16px;
+            color: var(--white);
+            letter-spacing: 4px;
+            text-shadow: 3px 3px 0 #000;
+        }
+
+        .menu-btn-start {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            padding: 18px 40px;
+            background: var(--green-dark);
+            color: var(--white);
+            border: 4px solid #000;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 2;
+            box-shadow: 0 6px 0 #000;
+            text-shadow: 2px 2px 0 #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .menu-btn-start:hover { background: var(--green); }
+        .menu-btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        .menu-disclaimer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 6px;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            line-height: 1.8;
+            z-index: 2;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .gb-shell {
+            width: 1000px;
+            background: var(--red);
+            border-radius: 16px 16px 60px 16px;
+            padding: 20px;
+            box-shadow:
+                inset 0 4px 0 var(--red-light),
+                inset 0 -6px 0 var(--red-dark),
+                0 12px 40px rgba(0,0,0,0.8);
+            border: 3px solid #600000;
+            position: relative;
+        }
+
+        .gb-shell::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+            border-radius: 2px;
+        }
+
+        .gb-title {
+            text-align: center;
+            color: var(--yellow);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 0 var(--red-dark), 0 0 20px rgba(248,208,48,0.4);
+            margin-bottom: 14px;
+            padding: 6px;
+        }
+
+        .game-body {
+            display: flex;
+            gap: 16px;
+        }
+
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .px-box {
+            background: var(--gray-dark);
+            border: 3px solid var(--gray-mid);
+            border-radius: 6px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 3px 0 #000;
+        }
+
+        .route-banner {
+            padding: 10px 14px;
+            background: var(--gray-mid);
+            border: 3px solid #000;
+            border-radius: 6px;
+            color: var(--yellow);
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-align: center;
+            box-shadow: 0 3px 0 #000;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .stat-box {
+            background: #0a0a0a;
+            border: 2px solid var(--gray-mid);
+            border-radius: 4px;
+            padding: 7px 4px;
+            font-size: 7px;
+            color: var(--gray-ui);
+            text-align: center;
+            position: relative; 
+        }
+
+        .stat-box .stat-val {
+            display: block;
+            margin-top: 4px;
+            font-size: 8px;
+            color: var(--yellow);
+        }
+
+        .stat-box::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gray-dark);
+            border: 2px solid var(--gray-ui);
+            color: var(--white);
+            padding: 8px;
+            font-size: 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            transition: opacity 0.1s, visibility 0.1s;
+        }
+
+        .stat-box:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 2s;
+        }
+
+        .battle-screen {
+            border: 4px solid #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5), 0 4px 0 #000;
+            
+            background-color: #7bed9f;
+            background-image: linear-gradient(135deg, #2ed573 25%, transparent 25%), 
+                              linear-gradient(225deg, #2ed573 25%, transparent 25%), 
+                              linear-gradient(45deg, #2ed573 25%, transparent 25%), 
+                              linear-gradient(315deg, #2ed573 25%, #7bed9f 25%);
+            background-position: 10px 0, 10px 0, 0 0, 0 0;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.4s ease;
+        }
+
+        .battle-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.15);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .battle-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(0,0,0,0.06) 7px, rgba(0,0,0,0.06) 8px),
+                repeating-linear-gradient(90deg, transparent, transparent 7px, rgba(0,0,0,0.06) 7px, rgba(0,0,0,0.06) 8px);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .enemy-hud {
+            width: 85%;
+            background: var(--gray-dark);
+            border: 3px solid #000;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 3;
+            box-shadow: 3px 3px 0 #000;
+        }
+
+        .enemy-name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .enemy-name {
+            font-size: 8px;
+            color: var(--white);
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .rarity-badge {
+            font-size: 6px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #000;
+        }
+        .badge-legendary { background: #ff9f43; color: #fff; text-shadow: 1px 1px 0 #000; }
+        .badge-epic { background: #9b59b6; color: #fff; text-shadow: 1px 1px 0 #000; }
+        .badge-shiny { background: var(--yellow); color: #000; }
+        .badge-boss { background: var(--red); color: var(--white); text-shadow: 1px 1px 0 #000; }
+
+        .hp-label { font-size: 7px; color: var(--gray-ui); margin-bottom: 3px; }
+
+        .hp-track {
+            background: #000;
+            border: 2px solid #000;
+            border-radius: 3px;
+            height: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: var(--green);
+            border-radius: 1px;
+            transition: width 0.08s linear, background 0.3s;
+        }
+
+        .hp-fill.medium { background: #f8d030; }
+        .hp-fill.low { background: var(--red); }
+
+        .hp-num {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .pokemon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            outline: none;
+            position: relative;
+            z-index: 3;
+            filter: drop-shadow(3px 6px 0 rgba(0,0,0,0.4));
+            transition: transform 0.06s;
+        }
+
+        .pokemon-btn:active { transform: scale(0.88) translateY(3px); }
+        .pokemon-btn img { width: 150px; height: 150px; image-rendering: pixelated; position: relative; z-index: 4; }
+
+        .timer-bar-container {
+            width: 85%;
+            height: 8px;
+            background: #000;
+            border: 2px solid #000;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: var(--red);
+            border-radius: 1px;
+            transition: width 1s linear;
+        }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+        }
+
+        .btn-px {
+            font-family: 'Press Start 2P', monospace;
+            border: 3px solid #000;
+            border-radius: 6px;
+            padding: 10px 8px;
+            font-size: 7px;
+            cursor: pointer;
+            color: var(--white);
+            text-shadow: 1px 1px 0 #000;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.6);
+            transition: transform 0.06s, box-shadow 0.06s;
+            text-align: center;
+            line-height: 1.6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-px:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+        .btn-px:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+        .btn-skill { background: var(--blue); }
+        .btn-skill.active-skill { background: var(--green-dark); }
+        .btn-skill.cooling { background: #603040; }
+
+        .btn-px .cd-overlay {
+            position: absolute;
+            left: 0; bottom: 0; top: 0;
+            background: rgba(255,255,255,0.12);
+            transition: width 0.1s linear;
+            pointer-events: none;
+        }
+
+        .btn-prestige { background: #9b59b6; }
+        .btn-prestige:not(:disabled) { background: #c0392b; }
+        .btn-reset { background: #601010; font-size: 7px; padding: 10px 12px; }
+
+        .sidebar {
+            width: 390px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tab-row { display: flex; gap: 4px; }
+
+        .tab-btn {
+            font-family: 'Press Start 2P', monospace;
+            background: var(--gray-mid);
+            color: var(--gray-ui);
+            border: 2px solid #000;
+            padding: 7px 5px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            font-size: 6px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--yellow);
+            color: #000;
+            border-bottom-color: var(--yellow);
+            text-shadow: none;
+        }
+
+        .shop-panel {
+            background: #0a0a0a;
+            border: 3px solid var(--gray-mid);
+            border-radius: 0 6px 6px 6px;
+            padding: 8px;
+            overflow-y: auto;
+            max-height: 520px;
+            flex: 1;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .shop-panel::-webkit-scrollbar { width: 6px; }
+        .shop-panel::-webkit-scrollbar-track { background: #000; }
+        .shop-panel::-webkit-scrollbar-thumb { background: var(--gray-mid); border-radius: 3px; }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: var(--gray-mid);
+            border: 2px solid #000;
+            border-radius: 5px;
+            padding: 9px 10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 2px 0 #000;
+        }
+
+        .shop-item:active { transform: translateY(2px); box-shadow: none; }
+        .shop-item.can-buy { background: #183828; border-color: var(--green); box-shadow: 0 2px 0 var(--green-dark); }
+        .shop-item.too-pricey { opacity: 0.45; cursor: not-allowed; }
+
+        .pokedex-item {
+            display: flex;
+            align-items: center;
+            background: #202028;
+            border: 2px solid #000;
+            border-radius: 5px;
+            padding: 6px;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 0 #000;
+            transition: border-color 0.2s;
+        }
+        
+        .pokedex-item.active-team-mon {
+            border-color: var(--green);
+            box-shadow: 0 2px 0 var(--green-dark), inset 0 0 8px rgba(56, 192, 96, 0.15);
+        }
+
+        .pokedex-img-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px solid var(--gray-mid);
+            border-radius: 4px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            height: 54px;
+        }
+        .pokedex-img-box img {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+        }
+        .pokedex-info { flex: 1; }
+        .pokedex-number { font-size: 5px; color: var(--yellow); margin-bottom: 3px; }
+        .pokedex-name { font-size: 7px; color: #fff; margin-bottom: 4px; }
+        .pokedex-status { font-size: 5px; color: var(--gray-ui); }
+
+        .item-left { flex: 1; }
+        .item-name { font-size: 7px; color: var(--yellow); margin-bottom: 4px; }
+        .shop-item.can-buy .item-name { color: #80ff80; }
+
+        .item-desc { font-size: 6px; color: var(--gray-ui); line-height: 1.7; }
+        .item-right { text-align: right; font-size: 7px; color: var(--red-light); white-space: nowrap; margin-left: 8px; }
+        .shop-item.can-buy .item-right { color: #60e860; }
+        .item-level { font-size: 6px; color: var(--gray-ui); margin-top: 3px; }
+        .empty-msg { font-size: 7px; color: var(--gray-ui); text-align: center; padding: 30px 10px; line-height: 2; }
+
+        .dmg-float {
+            position: fixed;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+            pointer-events: none;
+            animation: floatUp 0.7s ease forwards;
+            z-index: 999;
+        }
+
+        .dmg-float.crit { color: var(--yellow); font-size: 13px; }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-55px) scale(0.7); }
+        }
+
+        @keyframes defeatFlash {
+            0%, 100% { opacity: 1; }
+            25% { opacity: 0; }
+            50% { opacity: 1; }
+            75% { opacity: 0; }
+        }
+
+        .pokemon-btn img.defeated { animation: defeatFlash 0.5s ease; }
+
+        .shiny-aura {
+            position: absolute;
+            inset: -10px;
+            background: radial-gradient(circle, rgba(248,208,48,0.25) 0%, transparent 70%);
+            pointer-events: none;
+            animation: shimmer 2s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-menu-container" id="main-menu-screen">
+    <div class="menu-logo-box">
+        <div class="menu-title-top">POKÉMON</div>
+        <div class="menu-title-sub">★ CLICKER EDITION ★</div>
+    </div>
+    <button class="menu-btn-start" onclick="game.startGameFromMenu()">[ SPIEL STARTEN ]</button>
+    <div class="menu-disclaimer">
+        Dieses Spiel ist ein inoffizielles, nicht-kommerzielles Fan-Projekt.<br>
+        Alle Rechte an Pokémon liegen bei Nintendo und The Pokémon Company.
+    </div>
+</div>
+
+<div class="gb-shell" id="game-boy-screen" style="display: none;">
+    <div class="gb-title">★ POKÉMON CLICKER ★</div>
+
+    <div class="game-body">
+        <div class="main-area">
+            <div id="route-banner" class="route-banner">Kanto — Arena 1</div>
+
+            <div class="stats-row">
+                <div class="stat-box" data-tooltip="Dein Schaden pro Klick">🗡️ Klick<span id="stat-click" class="stat-val">1</span></div>
+                <div class="stat-box" data-tooltip="Deine aktuellen Pokédollar">💰 Geld<span id="stat-gold" class="stat-val">0 PD</span></div>
+                <div class="stat-box" data-tooltip="Schaden pro Sekunde durch dein Team">⚡ DPS<span id="stat-dps" class="stat-val">0/s</span></div>
+                <div class="stat-box" data-tooltip="Globaler Multiplikator">🌟 Mult<span id="stat-mult" class="stat-val">×1</span></div>
+                <div class="stat-box" data-tooltip="Besiegte Gegner bis zum Boss">🎯 Route<span id="stat-route" class="stat-val">0 / 9</span></div>
+            </div>
+
+            <div class="battle-screen px-box" id="battle-screen">
+                <div class="enemy-hud" id="enemy-hud">
+                    <div class="enemy-name-row">
+                        <span class="enemy-name" id="enemy-name">Lade...</span>
+                        <span id="enemy-badge"></span>
+                    </div>
+                    <div class="hp-label">HP</div>
+                    <div class="hp-track">
+                        <div class="hp-fill" id="hp-fill" style="width:100%"></div>
+                        <div class="hp-num" id="hp-num">--- / --- HP</div>
+                    </div>
+                </div>
+
+                <button class="pokemon-btn" id="poke-btn" onclick="game.click(event)">
+                    <div style="position:relative; display:flex; justify-content:center; align-items:center;">
+                        <div class="shiny-aura" id="shiny-aura" style="display:none;"></div>
+                        <img id="poke-img" src="" alt="pokemon" width="150" height="150">
+                    </div>
+                </button>
+
+                <div class="timer-bar-container" id="timer-bar-wrap" style="display:none;">
+                    <div class="timer-bar-fill" id="timer-bar" style="width:100%"></div>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="btn-px btn-skill" id="btn-skill" onclick="game.aktiviereRaserei()">
+                    <div class="cd-overlay" id="cd-overlay" style="width:0%"></div>
+                    🔥 RASEREI<br><span id="skill-sub" style="color:rgba(255,255,255,0.7);font-size:6px;">Gesperrt</span>
+                </button>
+                <button class="btn-px btn-prestige" id="btn-prestige" onclick="game.performPrestige()" disabled>
+                    ✨ PRESTIGE<br><span style="color:rgba(255,255,255,0.7);font-size:6px;" id="prestige-sub">Ab Arena 8</span>
+                </button>
+                <button class="btn-px btn-reset" onclick="game.hardResetGame()">💀<br>RESET</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="tab-row">
+                <button class="tab-btn active" id="tab-items" onclick="game.switchTab('items')">Items</button>
+                <button class="tab-btn" id="tab-pokemon" onclick="game.switchTab('pokemon')">Team-Upgrades</button>
+                <button class="tab-btn" id="tab-pokedex" onclick="game.switchTab('pokedex')">Pokédex</button>
+            </div>
+            <div class="shop-panel" id="shop-panel"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const POOLS = {};
+const GEN_RANGES = [
+    { gen: 1, start: 1, end: 151, leg: [144, 145, 146, 150, 151], epic: [113, 115, 128, 131, 137, 138, 139, 140, 141, 142, 143, 147, 148, 149] },
+    { gen: 2, start: 152, end: 251, leg: [243, 244, 245, 249, 250, 251], epic: [196, 197, 208, 212, 214, 227, 230, 233, 242, 248] },
+    { gen: 3, start: 252, end: 386, leg: [377, 378, 379, 380, 381, 382, 383, 384, 385, 386], epic: [282, 289, 330, 350, 373, 376] },
+    { gen: 4, start: 387, end: 493, leg: [480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493], epic: [445, 448, 461, 464, 468, 474] },
+    { gen: 5, start: 494, end: 649, leg: [494, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649], epic: [571, 609, 612, 635, 637] }
+];
+
+GEN_RANGES.forEach(g => {
+    let normal = [];
+    for (let i = g.start; i <= g.end; i++) {
+        if (!g.leg.includes(i) && !g.epic.includes(i)) normal.push(i);
+    }
+    POOLS[g.gen] = { leg: g.leg, epic: g.epic, normal: normal, all: Array.from({length: g.end - g.start + 1}, (_, i) => i + g.start) };
+});
+
+function getRarity(id) {
+    let numId = Number(id);
+    for (let g = 1; g <= 5; g++) {
+        if (POOLS[g].leg.includes(numId)) return 'legendary';
+        if (POOLS[g].epic.includes(numId)) return 'epic';
+    }
+    return 'normal';
+}
+
+class GameEngine {
+    constructor() {
+        this.pokedollar = 0;
+        this.idleDps = 0;
+        this.prestigeMultiplier = 1;
+        this.currentGen = 1;
+
+        this.skillMultiplikator = 1;
+        this.skillBereit = true;
+        this.skillAktiv = false;
+        this.rasereiCooldown = 25000;
+        this.skillCdRemaining = 0;
+        this.skillActiveDuration = 10000;
+        this.skillActiveRemaining = 0;
+
+        this.currentStage = 1;
+        this.pokemonDefeatedOnRoute = 0;
+        this.istImBossKampf = false;
+        this.bossTimerSekunden = 30;
+        this.bossTimerMax = 30;
+        this.currentTab = 'items';
+        this.pokedexView = 'normal'; 
+
+        this._shopDirty = true;
+        this._lastShopTab = '';
+        this._shopRenderCounter = 0;
+        this._gamePaused = false;
+        this._dpsNeedsRecalc = true;
+
+        this.regionNames = ["Kanto", "Johto", "Hoenn", "Sinnoh", "Einall"];
+        
+        this.bossData = {
+            1: [
+                { name: "Rocko", pokemonId: 95 }, { name: "Misty", pokemonId: 121 }, { name: "Major Bob", pokemonId: 26 }, { name: "Erika", pokemonId: 45 },
+                { name: "Koga", pokemonId: 49 }, { name: "Sabrina", pokemonId: 65 }, { name: "Pyro", pokemonId: 59 }, { name: "Giovanni", pokemonId: 112 },
+                { name: "Top 4 Lorelei", pokemonId: 131 }, { name: "Top 4 Bruno", pokemonId: 68 }, { name: "Top 4 Agathe", pokemonId: 94 }, { name: "Champion Siegfried", pokemonId: 149 }
+            ],
+            2: [
+                { name: "Falk", pokemonId: 17 }, { name: "Kai", pokemonId: 123 }, { name: "Whitney", pokemonId: 241 }, { name: "Antoni", pokemonId: 94 },
+                { name: "Jasmin", pokemonId: 208 }, { name: "Hartwig", pokemonId: 62 }, { name: "Melinda", pokemonId: 221 }, { name: "Sandra", pokemonId: 230 },
+                { name: "Top 4 Willi", pokemonId: 65 }, { name: "Top 4 Koga", pokemonId: 169 }, { name: "Top 4 Bruno", pokemonId: 68 }, { name: "Champion Siegfried", pokemonId: 149 }
+            ],
+            3: [
+                { name: "Roxanne", pokemonId: 299 }, { name: "Kamillo", pokemonId: 296 }, { name: "Walter", pokemonId: 310 }, { name: "Flavia", pokemonId: 324 },
+                { name: "Norman", pokemonId: 289 }, { name: "Wibke", pokemonId: 334 }, { name: "Ben & Svenja", pokemonId: 338 }, { name: "Wassili", pokemonId: 350 },
+                { name: "Top 4 Ulrich", pokemonId: 359 }, { name: "Top 4 Antonia", pokemonId: 356 }, { name: "Top 4 Frosina", pokemonId: 365 }, { name: "Champion Troy", pokemonId: 376 }
+            ],
+            4: [
+                { name: "Veit", pokemonId: 409 }, { name: "Silvana", pokemonId: 407 }, { name: "Hildegard", pokemonId: 448 }, { name: "Marinus", pokemonId: 419 },
+                { name: "Lamina", pokemonId: 429 }, { name: "Adam", pokemonId: 411 }, { name: "Frida", pokemonId: 460 }, { name: "Volkner", pokemonId: 405 },
+                { name: "Top 4 Herbaro", pokemonId: 452 }, { name: "Top 4 Teresa", pokemonId: 464 }, { name: "Top 4 Ignaz", pokemonId: 467 }, { name: "Champion Cynthia", pokemonId: 445 }
+            ],
+            5: [
+                { name: "Benny", pokemonId: 508 }, { name: "Aloe", pokemonId: 505 }, { name: "Artie", pokemonId: 542 }, { name: "Kamilla", pokemonId: 523 },
+                { name: "Turner", pokemonId: 530 }, { name: "Géraldine", pokemonId: 581 }, { name: "Sandro", pokemonId: 614 }, { name: "Lilia", pokemonId: 612 },
+                { name: "Top 4 Anissa", pokemonId: 609 }, { name: "Top 4 Eugen", pokemonId: 534 }, { name: "Top 4 Astor", pokemonId: 625 }, { name: "Champion Lauro", pokemonId: 637 }
+            ]
+        };
+        
+        this.items = [
+            { name: "Trank",        desc: "Erhöht Klickschaden (skaliert)",   lvl: 0, cost: 25,   mult: 1.35 },
+            { name: "Sonderbonbon", desc: "+1 Level für alle im Team",        lvl: 0, cost: 500,  mult: 1.8  },
+            { name: "EP-Teiler",    desc: "+15% Team-DPS",                    lvl: 0, cost: 400,  mult: 1.5  },
+            { name: "Münzamulett",  desc: "+35% Gold von Gegnern",            lvl: 0, cost: 150,  mult: 1.4  },
+            { name: "Schillerpin",  desc: "+3% Shiny-Chance",                 lvl: 0, cost: 600,  mult: 2.0  },
+            { name: "Fluchtseil",   desc: "Bricht Bosskampf sofort ab",       lvl: 0, cost: 40,   mult: 1.1  },
+            { name: "Top-Elixier",  desc: "-1s Raserei-Cooldown",             lvl: 0, cost: 300,  mult: 1.5  },
+            { name: "Meisterball",  desc: "Fängt Mon der aktuellen Region",   lvl: 0, cost: 2500, mult: 2.5  }
+        ];
+
+        this.ownedPokemon = {};
+        this.currentEnemy = null;
+        
+        this.pokemonNames = {};
+        this.fetchPokemonNames();
+
+        document.addEventListener('visibilitychange', () => {
+            this._gamePaused = document.hidden;
+        });
+
+        this.loadGame();
+        this.spawnNewPokemon();
+        this.startGameLoop();
+    }
+    
+    async fetchPokemonNames() {
+        let cached = localStorage.getItem("pkm_clicker_names");
+        if (cached) {
+            this.pokemonNames = JSON.parse(cached);
+            this.updateUI();
+            return;
+        }
+
+        try {
+            let res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=649');
+            let data = await res.json();
+            data.results.forEach((p, index) => {
+                this.pokemonNames[index + 1] = p.name.charAt(0).toUpperCase() + p.name.slice(1);
+            });
+            localStorage.setItem("pkm_clicker_names", JSON.stringify(this.pokemonNames));
+            this.updateUI(); 
+        } catch (e) {
+            console.error("Konnte Pokémon-Namen nicht laden.", e);
+        }
+    }
+
+    startGameFromMenu() {
+        document.getElementById('main-menu-screen').style.display = 'none';
+        document.getElementById('game-boy-screen').style.display = 'block';
+    }
+
+    getItemCost(i) { return Math.floor(this.items[i].cost * Math.pow(this.items[i].mult, this.items[i].lvl)); }
+
+    getPokemonCost(id, currentLevel) {
+        let numericId = Number(id);
+        let r = getRarity(numericId);
+        let rarityMult = r === 'legendary' ? 1500 : (r === 'epic' ? 400 : 30);
+        let baseCost = rarityMult + (numericId * 8);
+        return Math.floor(baseCost * Math.pow(1.5, currentLevel));
+    }
+
+    getClickDamage() {
+        let trankLvl = this.items[0].lvl;
+        let baseClick = Math.floor(1 + (trankLvl * 1.5) + Math.pow(1.15, trankLvl));
+        return baseClick;
+    }
+
+    switchTab(tab) {
+        this.currentTab = tab;
+        this._shopDirty = true;
+        document.getElementById('tab-items').className = tab === 'items' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('tab-pokemon').className = tab === 'pokemon' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('tab-pokedex').className = tab === 'pokedex' ? 'tab-btn active' : 'tab-btn';
+        this.renderShop();
+    }
+
+    togglePokedex(view) {
+        this.pokedexView = view;
+        this._shopDirty = true;
+        this.renderShop();
+    }
+
+    click(event) {
+        let totalDmg = this.getClickDamage() * this.prestigeMultiplier * this.skillMultiplikator;
+        this.damageEnemy(totalDmg);
+        if (event) {
+            let isCrit = this.skillAktiv;
+            let f = document.createElement('div');
+            f.className = 'dmg-float' + (isCrit ? ' crit' : '');
+            f.innerText = (isCrit ? '★ ' : '') + this.formatNum(Math.floor(totalDmg));
+            f.style.left = (event.clientX - 20 + (Math.random()*30-15)) + 'px';
+            f.style.top = (event.clientY - 10) + 'px';
+            document.body.appendChild(f);
+            setTimeout(() => f.remove(), 700);
+        }
+    }
+
+    startGameLoop() {
+        let dpsAcc = 0;
+        let timerAcc = 0;
+
+        setInterval(() => {
+            const dt = 100;
+            if (document.getElementById('game-boy-screen').style.display === 'none') return;
+            if (this._gamePaused) return;
+
+            dpsAcc += dt;
+            if (dpsAcc >= 1000) {
+                dpsAcc = 0;
+                if (this._dpsNeedsRecalc) {
+                    this.recalculateDPS();
+                    this._dpsNeedsRecalc = false;
+                }
+                if (this.idleDps > 0) this.damageEnemy(this.idleDps * this.prestigeMultiplier);
+            }
+
+            if (this.istImBossKampf) {
+                timerAcc += dt;
+                if (timerAcc >= 1000) {
+                    timerAcc = 0;
+                    this.bossTimerSekunden--;
+                    
+                    if (this.bossTimerSekunden <= 0) {
+                        if (this.currentStage >= 10) {
+                            this.currentStage = 9;
+                        }
+                        
+                        this.pokemonDefeatedOnRoute = 0;
+                        this.istImBossKampf = false;
+                        this.spawnNewPokemon();
+                    }
+                }
+            } else {
+                timerAcc = 0;
+            }
+
+            if (this.skillAktiv) {
+                this.skillActiveRemaining = Math.max(0, this.skillActiveRemaining - dt);
+                if (this.skillActiveRemaining <= 0) {
+                    this.skillMultiplikator = 1;
+                    this.skillAktiv = false;
+                    this.skillCdRemaining = this.rasereiCooldown;
+                }
+            } else if (!this.skillBereit) {
+                this.skillCdRemaining = Math.max(0, this.skillCdRemaining - dt);
+                if (this.skillCdRemaining <= 0) {
+                    this.skillBereit = true;
+                }
+            }
+
+            this.updateUI();
+        }, 100);
+    }
+
+    recalculateDPS() {
+        let base = 0;
+        for (let id in this.ownedPokemon) {
+            let p = this.ownedPokemon[id];
+            if (p.lvl === 0) continue;
+            let r = getRarity(id);
+            let rarityBase = r === 'legendary' ? 25 : (r === 'epic' ? 5 : 1);
+            base += rarityBase * p.lvl;
+        }
+        let epBonus = 1.0 + (this.items[2].lvl * 0.15);
+        this.idleDps = Math.floor(base * epBonus);
+    }
+
+    calculateHP() {
+        let globalLevel = ((this.currentGen - 1) * 12) + this.currentStage;
+        if (this.istImBossKampf) {
+            return Math.floor(250 * Math.pow(2.1, globalLevel - 1));
+        }
+        return Math.floor(50 * Math.pow(1.85, globalLevel - 1));
+    }
+
+    calculateReward() {
+        let globalLevel = ((this.currentGen - 1) * 12) + this.currentStage;
+        return Math.floor(10 * Math.pow(1.45, globalLevel - 1));
+    }
+
+    damageEnemy(damage) {
+        if (!this.currentEnemy || this.currentEnemy.currentHp <= 0) return;
+        this.currentEnemy.currentHp -= damage;
+
+        if (this.currentEnemy.currentHp <= 0) {
+            this.currentEnemy.currentHp = 0;
+
+            let earned = this.currentEnemy.reward * this.prestigeMultiplier;
+            let goldBonus = 1.0 + (this.items[3].lvl * 0.35);
+            this.pokedollar = Math.floor(this.pokedollar + (earned * goldBonus));
+
+            let img = document.getElementById('poke-img');
+            if (img) { img.classList.add('defeated'); setTimeout(() => img.classList.remove('defeated'), 500); }
+
+            if (this.currentEnemy.isBoss) {
+                if (this.currentEnemy.isRed) {
+                    alert("🏆 DU HAST RED BESIEGT!\nDu bist die absolute Clicker-Legende!");
+                }
+                this.currentStage++;
+                this.pokemonDefeatedOnRoute = 0;
+                this.istImBossKampf = false;
+                
+                if (this.currentStage > 12 && this.currentGen < 5) {
+                    this.currentGen++;
+                    this.currentStage = 1; 
+                    alert("🏆 Gratulation! Du hast den Champion besiegt!\nWillkommen in der " + this.regionNames[this.currentGen - 1] + "-Region!");
+                }
+                
+            } else {
+                this.pokemonDefeatedOnRoute++;
+                let id = this.currentEnemy.id;
+                
+                if (!this.ownedPokemon[id]) {
+                    this.ownedPokemon[id] = { name: this.currentEnemy.baseName, lvl: 0, unlocked: true, discoveredShiny: this.currentEnemy.isShiny };
+                } else if (this.currentEnemy.isShiny) {
+                    this.ownedPokemon[id].discoveredShiny = true;
+                }
+                this._dpsNeedsRecalc = true;
+                this._shopDirty = true;
+            }
+
+            this.saveGame();
+            this.spawnNewPokemon();
+        }
+    }
+
+    spawnNewPokemon() {
+        if (this.currentGen === 5 && this.currentStage === 13) {
+            this.istImBossKampf = true;
+            let hp = this.calculateHP() * 10; 
+            this.currentEnemy = { name: "LEGENDE: RED", id: 25, baseName:"Pikachu", maxHp: hp, currentHp: hp, reward: hp * 5, isShiny: true, isBoss: true, rarity: 'boss', isRed: true };
+            this.bossTimerSekunden = 60; 
+            return;
+        }
+
+        let isTop4Consecutive = (this.currentStage >= 10 && this.currentStage <= 12);
+
+        if ((this.pokemonDefeatedOnRoute >= 9 || isTop4Consecutive) && !this.istImBossKampf) {
+            this.istImBossKampf = true;
+            let hp = this.calculateHP();
+            let reward = this.calculateReward() * 8;
+            
+            let bossIndex = Math.min(this.currentStage - 1, (this.bossData[this.currentGen] || []).length - 1);
+            let bossObj = (this.bossData[this.currentGen] || [])[bossIndex] || { name: "???", pokemonId: 95 };
+            
+            this.currentEnemy = { 
+                name: bossObj.name, 
+                baseName: bossObj.name, 
+                id: bossObj.pokemonId, 
+                maxHp: hp, currentHp: hp, 
+                reward: reward, 
+                isShiny: false, isBoss: true, rarity: 'boss'
+            };
+            this.bossTimerSekunden = this.bossTimerMax;
+        } else if (!this.istImBossKampf) {
+            let r = Math.random();
+            let isLegendary = r < 0.02;
+            let isEpic = r >= 0.02 && r < 0.12;
+
+            let pGen = POOLS[this.currentGen];
+            let pool = isLegendary ? pGen.leg : (isEpic ? pGen.epic : pGen.normal);
+            let selectedId = pool[Math.floor(Math.random() * pool.length)];
+
+            let baseHp = this.calculateHP();
+            let hp = isLegendary ? baseHp * 8 : (isEpic ? baseHp * 3 : baseHp);
+            
+            let baseReward = this.calculateReward();
+            let reward = isLegendary ? baseReward * 6 : (isEpic ? baseReward * 2 : baseReward);
+
+            let shinyChance = 0.01 + (this.items[4].lvl * 0.03);
+            let isShiny = Math.random() < shinyChance;
+
+            let baseName = this.pokemonNames[selectedId] || `PKMN #${selectedId}`;
+            
+            this.currentEnemy = {
+                name: baseName,
+                baseName: baseName,
+                id: selectedId,
+                maxHp: hp, currentHp: hp,
+                reward: Math.floor(reward) + 3,
+                isShiny: isShiny, isBoss: false,
+                rarity: isLegendary ? 'legendary' : (isEpic ? 'epic' : 'normal')
+            };
+        }
+        this._shopDirty = true;
+    }
+
+    buyUpgrade(i) {
+        let cost = this.getItemCost(i);
+        if (Math.floor(this.pokedollar) < cost) return;
+        this.pokedollar -= cost;
+        this.items[i].lvl++;
+
+        if (i === 1) {
+            for (let id in this.ownedPokemon) {
+                if (this.ownedPokemon[id].lvl > 0) this.ownedPokemon[id].lvl++;
+            }
+            this._dpsNeedsRecalc = true;
+        }
+        if (i === 5 && this.istImBossKampf) {
+            if (this.currentStage >= 10) {
+                this.currentStage = 9;
+            }
+            this.pokemonDefeatedOnRoute = 0;
+            this.istImBossKampf = false;
+            this.bossTimerSekunden = this.bossTimerMax;
+            this.spawnNewPokemon();
+        }
+        if (i === 6) this.rasereiCooldown = Math.max(5000, this.rasereiCooldown - 1000); 
+        if (i === 7) {
+            let currentPool = POOLS[this.currentGen].all;
+            let randomId = currentPool[Math.floor(Math.random() * currentPool.length)];
+            
+            if (!this.ownedPokemon[randomId]) {
+                let name = this.pokemonNames[randomId] || `PKMN #${randomId}`;
+                this.ownedPokemon[randomId] = { name: name, lvl: 1, unlocked: true, discoveredShiny: false };
+            } else {
+                this.ownedPokemon[randomId].lvl++;
+            }
+            this._dpsNeedsRecalc = true;
+        }
+
+        this._shopDirty = true;
+        this.saveGame();
+    }
+
+    buyPokemon(id) {
+        let p = this.ownedPokemon[id];
+        if (!p) return;
+        let cost = this.getPokemonCost(id, p.lvl);
+        if (Math.floor(this.pokedollar) < cost) return;
+        this.pokedollar -= cost;
+        p.lvl++;
+        this._dpsNeedsRecalc = true;
+        this._shopDirty = true;
+        this.saveGame();
+    }
+
+    performPrestige() {
+        let totalStagesForPrestige = ((this.currentGen - 1) * 12) + (this.currentStage - 1);
+        
+        if (totalStagesForPrestige >= 8) {
+            let bonusMulti = totalStagesForPrestige * 0.1;
+            
+            let confirmed = confirm(`🌟 PRESTIGE DURCHFÜHREN? 🌟\n\nDu fängst wieder bei Arena 1 an, behältst aber alle deine Items, dein Geld und deine Pokémon-Level!\n\nDein globaler Multiplikator steigt um +${bonusMulti.toFixed(1)}!\n\nMöchtest du fortfahren?`);
+            
+            if (confirmed) {
+                this.prestigeMultiplier += bonusMulti;
+                
+                this.currentStage = 1;
+                this.currentGen = 1; 
+                this.pokemonDefeatedOnRoute = 0;
+                this.istImBossKampf = false;
+                
+                this.skillAktiv = false;
+                this.skillBereit = true;
+                this.skillCdRemaining = 0;
+                this.skillActiveRemaining = 0;
+                
+                this._dpsNeedsRecalc = true;
+                this._shopDirty = true;
+                this.saveGame();
+                this.spawnNewPokemon();
+            }
+        }
+    }
+
+    hardResetGame() {
+        if (confirm("WARNUNG!\nGesamten Spielstand löschen und ganz von vorne beginnen? (Auch Prestige-Level gehen verloren!)")) {
+            localStorage.removeItem("pkm_clicker_v2_save");
+            location.reload();
+        }
+    }
+
+    aktiviereRaserei() {
+        if (this.currentGen === 1 && this.currentStage < 3) return;
+        if (!this.skillBereit || this.skillAktiv) return;
+        
+        this.skillBereit = false;
+        this.skillAktiv = true;
+        this.skillMultiplikator = 5;
+        this.skillActiveRemaining = this.skillActiveDuration;
+        this.skillCdRemaining = 0;
+    }
+
+    saveGame() {
+        let save = {
+            pokedollar: this.pokedollar, currentStage: this.currentStage, currentGen: this.currentGen,
+            prestigeMultiplier: this.prestigeMultiplier, itemsLvl: this.items.map(i => i.lvl),
+            ownedPokemon: this.ownedPokemon
+        };
+        localStorage.setItem("pkm_clicker_v2_save", JSON.stringify(save));
+    }
+
+    loadGame() {
+        let raw = localStorage.getItem("pkm_clicker_v2_save");
+        if (!raw) return;
+        try {
+            let s = JSON.parse(raw);
+            this.pokedollar = s.pokedollar || 0;
+            this.currentStage = s.currentStage || 1;
+            this.currentGen = s.currentGen || 1;
+            this.prestigeMultiplier = s.prestigeMultiplier || 1;
+            this.ownedPokemon = s.ownedPokemon || {};
+            if (s.itemsLvl) s.itemsLvl.forEach((lvl, i) => { if (this.items[i]) this.items[i].lvl = lvl || 0; });
+        } catch(e) {}
+        this._dpsNeedsRecalc = true;
+    }
+
+    formatNum(n) {
+        if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return n.toLocaleString('de-CH');
+    }
+
+    renderShop() {
+        this._shopRenderCounter++;
+        const shouldForce = this._shopDirty || this._lastShopTab !== this.currentTab;
+        const shouldThrottle = this._shopRenderCounter % 5 === 0; 
+        if (!shouldForce && !shouldThrottle) return;
+
+        this._shopDirty = false;
+        this._lastShopTab = this.currentTab;
+
+        let html = '';
+        let currentCash = Math.floor(this.pokedollar);
+        
+        if (this.currentTab === 'items') {
+            for (let i = 0; i < this.items.length; i++) {
+                let item = this.items[i];
+                let cost = this.getItemCost(i);
+                let cls = currentCash >= cost ? 'can-buy' : 'too-pricey';
+                html += `<div class="shop-item ${cls}" onclick="game.buyUpgrade(${i})">
+                    <div class="item-left">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-desc">${item.desc}</div>
+                        <div class="item-level">Stufe ${item.lvl}</div>
+                    </div>
+                    <div class="item-right">${this.formatNum(cost)} PD</div>
+                </div>`;
+            }
+        } else if (this.currentTab === 'pokemon') {
+            let count = 0;
+            for (let id in this.ownedPokemon) {
+                let p = this.ownedPokemon[id];
+                if (!p.unlocked) continue;
+                count++;
+                let cost = this.getPokemonCost(id, p.lvl);
+                let cls = currentCash >= cost ? 'can-buy' : 'too-pricey';
+                html += `<div class="shop-item ${cls}" onclick="game.buyPokemon(${id})">
+                    <div class="item-left">
+                        <div class="item-name">${p.name || this.pokemonNames[id]} <span style="font-size:6px;color:var(--gray-ui);">[Lvl ${p.lvl}]</span></div>
+                        <div class="item-desc">Erhöht Team-Schaden dauerhaft</div>
+                    </div>
+                    <div class="item-right">${this.formatNum(cost)} PD</div>
+                </div>`;
+            }
+            if (count === 0) html = `<div class="empty-msg">Besiege wilde Pokémon,<br>um sie hier für Upgrades freizuschalten!</div>`;
+        } else if (this.currentTab === 'pokedex') {
+            let isShinyView = this.pokedexView === 'shiny';
+            let maxDex = GEN_RANGES[this.currentGen - 1].end;
+            let count = 0;
+            let displayedItemsHtml = '';
+
+            for (let id in this.ownedPokemon) {
+                let p = this.ownedPokemon[id];
+                if (!p.unlocked) continue;
+                if (isShinyView && !p.discoveredShiny) continue;
+                if (Number(id) <= maxDex) {
+                    count++;
+                }
+                
+                let spriteBase = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+                if (isShinyView) spriteBase += 'shiny/';
+                
+                let activeClass = (this.currentEnemy && !this.istImBossKampf && Number(this.currentEnemy.id) === Number(id)) ? ' active-team-mon' : '';
+
+                displayedItemsHtml += `<div class="pokedex-item${activeClass}">
+                    <div class="pokedex-img-box">
+                        <img src="${spriteBase}${id}.png" alt="dex">
+                    </div>
+                    <div class="pokedex-info">
+                        <div class="pokedex-number">#${String(id).padStart(3, '0')}</div>
+                        <div class="pokedex-name">${p.name || this.pokemonNames[id]}${p.discoveredShiny ? ' ✨' : ''}</div>
+                        <div class="pokedex-status">Stufe: ${p.lvl}</div>
+                    </div>
+                </div>`;
+            }
+
+            html += `
+                <div style="display:flex; gap:4px; margin-bottom:4px;">
+                    <button class="tab-btn ${!isShinyView ? 'active' : ''}" style="flex:1;" onclick="game.togglePokedex('normal')">Normal</button>
+                    <button class="tab-btn ${isShinyView ? 'active' : ''}" style="flex:1;" onclick="game.togglePokedex('shiny')">Shiny ✨</button>
+                </div>
+                <div style="text-align:center; font-size:7px; color:var(--yellow); margin-bottom:8px; background:var(--gray-dark); border:2px solid #000; border-radius:4px; padding:6px; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);">
+                    Einträge: ${count} / ${maxDex}
+                </div>
+            `;
+            
+            html += displayedItemsHtml;
+
+            if (count === 0) {
+                html += `<div class="empty-msg">${isShinyView ? 'Du hast noch keine<br>Shiny Pokémon entdeckt!' : 'Dein Pokédex ist leer.<br>Besiege Mons, um Daten zu sammeln!'}</div>`;
+            }
+        }
+        document.getElementById('shop-panel').innerHTML = html;
+    }
+
+    updateUI() {
+        if (document.getElementById('game-boy-screen').style.display === 'none') return;
+
+        let roundedCash = Math.floor(this.pokedollar);
+        let totalClick = this.getClickDamage() * this.prestigeMultiplier * this.skillMultiplikator;
+        
+        document.getElementById('stat-click').innerText = this.formatNum(totalClick);
+        document.getElementById('stat-gold').innerText = this.formatNum(roundedCash) + ' PD';
+        document.getElementById('stat-dps').innerText = this.formatNum(Math.floor(this.idleDps * this.prestigeMultiplier)) + '/s';
+        document.getElementById('stat-mult').innerText = '×' + this.prestigeMultiplier.toFixed(1);
+
+        let banner = document.getElementById('route-banner');
+        let regionName = this.regionNames[this.currentGen - 1] || "Kanto";
+        let displayStage = this.currentStage > 12 ? 12 : this.currentStage;
+
+        if (this.istImBossKampf) {
+            let bossNameShort = this.currentEnemy ? this.currentEnemy.name : 'BOSS';
+            banner.innerText = `${regionName} — ${bossNameShort}`;
+            document.getElementById('stat-route').innerText = `⏳ ${this.bossTimerSekunden}s`;
+            document.getElementById('timer-bar-wrap').style.display = 'block';
+            document.getElementById('timer-bar').style.width = ((this.bossTimerSekunden / this.bossTimerMax) * 100) + '%';
+            document.getElementById('battle-screen').classList.add('boss-mode');
+        } else {
+            banner.innerText = displayStage <= 8 
+                ? `${regionName} — Arena ${displayStage}` 
+                : `${regionName} — Die Top Vier`;
+            
+            if (this.currentStage >= 10 && this.currentStage <= 12) {
+                document.getElementById('stat-route').innerText = 'TOP 4';
+            } else {
+                document.getElementById('stat-route').innerText = this.pokemonDefeatedOnRoute + ' / 9';
+            }
+            
+            document.getElementById('timer-bar-wrap').style.display = 'none';
+            document.getElementById('battle-screen').classList.remove('boss-mode');
+        }
+
+        let e = this.currentEnemy;
+        if (e) {
+            if (e.name.startsWith("PKMN") && this.pokemonNames[e.id]) {
+                e.name = this.pokemonNames[e.id];
+                e.baseName = this.pokemonNames[e.id];
+            }
+
+            document.getElementById('enemy-name').innerText = e.name;
+            let badge = document.getElementById('enemy-badge');
+            
+            if (e.isBoss) badge.innerHTML = '<span class="rarity-badge badge-boss">BOSS</span>';
+            else if (e.rarity === 'legendary') badge.innerHTML = '<span class="rarity-badge badge-legendary">👑 LEGENDÄR</span>';
+            else if (e.rarity === 'epic') badge.innerHTML = '<span class="rarity-badge badge-epic">⭐ EPISCH</span>';
+            else if (e.isShiny) badge.innerHTML = '<span class="rarity-badge badge-shiny">✨ SHINY</span>';
+            else badge.innerHTML = '';
+
+            document.getElementById('shiny-aura').style.display = (e.isShiny && !e.isBoss) ? 'block' : 'none';
+
+            let pct = e.maxHp > 0 ? (e.currentHp / e.maxHp) * 100 : 0;
+            let hpFill = document.getElementById('hp-fill');
+            hpFill.style.width = pct + '%';
+            hpFill.className = 'hp-fill' + (pct <= 20 ? ' low' : pct <= 50 ? ' medium' : '');
+            document.getElementById('hp-num').innerText = this.formatNum(Math.max(0, Math.floor(e.currentHp))) + ' / ' + this.formatNum(e.maxHp) + ' HP';
+
+            let imgEl = document.getElementById('poke-img');
+            let base = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+            if (e.isShiny) base += 'shiny/';
+            let newSrc = base + e.id + '.png';
+            if (imgEl.src !== newSrc) imgEl.src = newSrc;
+        }
+
+        let presBtn = document.getElementById('btn-prestige');
+        let prestSub = document.getElementById('prestige-sub');
+        
+        let totalStagesForPrestige = ((this.currentGen - 1) * 12) + (this.currentStage - 1);
+        
+        if (totalStagesForPrestige >= 8) {
+            let bonusMulti = totalStagesForPrestige * 0.1;
+            presBtn.disabled = false;
+            presBtn.style.background = '#c0392b';
+            prestSub.innerText = `+${bonusMulti.toFixed(1)} MULTI`;
+            prestSub.style.color = '#f8d030';
+        } else {
+            presBtn.disabled = true;
+            presBtn.style.background = '';
+            prestSub.innerText = 'Ab Arena 8';
+            prestSub.style.color = 'rgba(255,255,255,0.7)';
+        }
+
+        let sBtn = document.getElementById('btn-skill');
+        let skillSub = document.getElementById('skill-sub');
+        let cdOverlay = document.getElementById('cd-overlay');
+
+        if (this.currentGen === 1 && this.currentStage < 3) {
+            sBtn.disabled = true;
+            sBtn.className = 'btn-px btn-skill';
+            skillSub.innerText = 'Ab Arena 3';
+            cdOverlay.style.width = '0%';
+        } else if (this.skillAktiv) {
+            sBtn.disabled = true;
+            sBtn.className = 'btn-px btn-skill active-skill';
+            let pct = (this.skillActiveRemaining / this.skillActiveDuration) * 100;
+            skillSub.innerText = (this.skillActiveRemaining / 1000).toFixed(1) + 's aktiv';
+            cdOverlay.style.width = pct + '%';
+        } else if (!this.skillBereit) {
+            sBtn.disabled = true;
+            sBtn.className = 'btn-px btn-skill cooling';
+            let pct = (this.skillCdRemaining / this.rasereiCooldown) * 100;
+            skillSub.innerText = (this.skillCdRemaining / 1000).toFixed(1) + 's CD';
+            cdOverlay.style.width = pct + '%';
+        } else {
+            sBtn.disabled = false;
+            sBtn.className = 'btn-px btn-skill';
+            skillSub.innerText = '×5 SCHADEN';
+            cdOverlay.style.width = '0%';
+        }
+
+        this.renderShop();
+    }
+}
+
+const game = new GameEngine();
+</script>
+</body>
+</html>
